@@ -1,5 +1,5 @@
 {
-    "name": "syntux/messagequeue",
+    "name": "syntux/messaging",
     "type": "library",
     "autoload": {
         "psr-0": {"Messaging": ""}
