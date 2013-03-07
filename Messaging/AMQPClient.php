@@ -3,23 +3,26 @@
 namespace Messaging;
 
 use PhpAmqpLib\Connection\AMQPConnection;
+use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Exception\AMQPRuntimeException;
 
-class BasicAMQPWorker extends Worker { 
+class AMQPClient extends Client { 
     
     private $connection;
     
     private $channel;
     
-    public function start() {
+    /**
+     * Publish a message to the exchange
+     * 
+     * @param string $exchange
+     * @param string $body
+     */
+    public function publish($exchange, $body)
+    {
+        $msg = new AMQPMessage(json_encode($body));
         
-        while(count($this->channel->callbacks)) {
-            $this->channel->wait();
-        }
-    }
-    
-    public function registerChannel($name, $handlerClassName) {
-        $this->channel->basic_consume($name, '', false, false, false, false, array($handlerClassName, 'execute'));
+        $this->channel->basic_publish($msg, $exchange);
     }
     
     public function prepareConnection() {

@@ -24,11 +24,4 @@ abstract class Worker {
         $this->adapter = $adapter;
     }
     
-    public function registerChannel($name, $class) {
-        $task = new $class;
-        
-        if ($task instanceof Executable) {
-            $task->execute("");
-        }
-    }
 }
