@@ -12,7 +12,9 @@ class BasicAMQPWorker extends Worker {
     private $channel;
     
     public function start() {
-        echo " [*] AMQP start";
+        while(count($this->channel->callbacks)) {
+            $this->channel->wait();
+        }
     }
     
     public function registerChannel($name, $handlerClassName) {
