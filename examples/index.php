@@ -2,12 +2,13 @@
 
 use Messaging\Executable;
 use Messaging\WorkerFactory;
+use PhpAmqpLib\Message\AMQPMessage;
 
-require_once 'vendor/autoload.php';
+require_once '../vendor/autoload.php';
 
 
 class ThumbShotTask implements Executable {
-    public function execute($body) {
+    public function execute(AMQPMessage $body) {
         
     }
 }

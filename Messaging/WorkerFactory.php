@@ -5,7 +5,7 @@ namespace Messaging;
 class WorkerFactory {
     
     public function create() {
-        $workerAdapter = new WorkerImpl();
+        $workerAdapter = new BasicAMQPWorker();
         return $workerAdapter;
     }
 }
