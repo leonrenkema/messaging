@@ -10,18 +10,20 @@ namespace Messaging;
  */
 abstract class Worker {
     
-    private $adapter;
+    protected $config;
     
-    abstract function prepareConnection();
-    
-
-    public function __construct() {
-        $this->prepareConnection();
+    public function setConfig($config) {
+        $this->config = $config;
     }
     
+    /**
+     * Open the connection with a messaging broker
+     * 
+     */
+    abstract protected function prepareConnection();
     
-    public function setAdapter($adapter) {
-        $this->adapter = $adapter;
+    public function __construct() {
+    
     }
     
 }

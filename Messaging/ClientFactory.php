@@ -4,7 +4,23 @@ namespace Messaging;
 
 class ClientFactory {
     
-    public function create() {
-        return new AMQPClient();
+    /**
+    * @return Client
+    *
+    */
+    public function create($config) {
+        
+        if (!isset($config['type'])) {
+            $config['type'] = "BasicAMQP";
+        }
+        
+        $className = "Messaging\\" . $config['type'] . "Client";
+        
+        $client = new $className();
+        
+        $client->setConfig($config);
+        
+        return $client;
+        
     }
 }

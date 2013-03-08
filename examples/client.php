@@ -3,10 +3,17 @@
 use Messaging\ClientFactory;
 require_once '../vendor/autoload.php';
 
-$client = ClientFactory::create();
+
+
+$config['host'] = 'test.seoeffect.com';
+$config['port'] = 5672;
+$config['user'] = 'guest';
+$config['password'] = 'guest';
+
+$client = ClientFactory::create($config);
 
 $client->prepareConnection();
 
-$body = array('campaignId' => 10, 'url' => 'http://fok.nl');
+$body = array('campaignId' => 31412, 'url' => 'http://tweakers.net');
 
 $client->publish('seo.thumbshots.create', $body);
