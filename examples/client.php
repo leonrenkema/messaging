@@ -12,8 +12,6 @@ $config['password'] = 'guest';
 
 $client = ClientFactory::create($config);
 
-$client->prepareConnection();
-
 $body = array('campaignId' => 31412, 'url' => 'http://tweakers.net');
 
 $client->publish('seo.thumbshots.create', $body);

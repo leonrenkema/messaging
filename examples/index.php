@@ -2,7 +2,6 @@
 
 use Messaging\Executable;
 use Messaging\WorkerFactory;
-use PhpAmqpLib\Message\AMQPMessage;
 
 require_once '../vendor/autoload.php';
 

@@ -8,7 +8,7 @@ class ClientFactory {
     * @return Client
     *
     */
-    public function create($config) {
+    public static function create($config) {
         
         if (!isset($config['type'])) {
             $config['type'] = "BasicAMQP";
