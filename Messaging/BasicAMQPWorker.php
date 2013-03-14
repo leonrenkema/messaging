@@ -35,7 +35,7 @@ class BasicAMQPWorker extends Worker {
             $this->connection = new AMQPConnection($this->config['host'], $this->config['port'], $this->config['user'], $this->config['password']);
 
             $this->channel = $this->connection->channel();
-            $this->channel->basic_qos(10, 10);
+            $this->channel->basic_qos(0, 10);
             
         } catch(AMQPConnectionException $e) {
             return null;
