@@ -18,12 +18,42 @@ class BasicAMQPWorker extends Worker {
     //The default prefetch size for workers that have not implemented their own
     const DEFAULT_PREFETCH_COUNT = 0;
     
+    //The default lifespan for workers that have not implemented their own
+    //The lifespan is set in message count, so this is the amount of messages the worker will process before restarting itself
+    //restarting itself frees up memory and resources;
+    const DEFAULT_LIFESPAN = 100;
+    
+    const MESSAGE_RESTARTING = "This Worker is restarting since it has reached its end of life. It will be back up shortly";
+    
     /**
      * Blocking call that fires the Task every time a message comes in.
+     * 
+     * @param $lifespan; If empty the default lifespan is used. When the lifespan is reached the connection is reset.
      */
-    public function start() {
+    public function start($lifespan = null) {
+
+        //set the default lifespan if no lifespan has been given
+        if($lifespan == null){
+            $lifespan = self::DEFAULT_LIFESPAN;
+        }
+        
+        //set the amount of processed messages go 0.
+        $messagesProcessed = 0;
         while(count($this->channel->callbacks)) {
-            $this->channel->wait();
+            //set the message +1 (its the first, 2nd, 3rd, etc message)
+            $messagesProcessed+=1;
+            
+            //check if the lifespan has been reached
+            if($lifespan >= $messagesProcessed){
+                //if not we wait for another message
+                $this->channel->wait();
+            } else {
+                //once it has we close the connection.
+                $this->channel->close(0, self::MESSAGE_RESTARTING);
+                echo self::MESSAGE_RESTARTING;
+                //exit the php process so we can release the resources
+                exit;
+            }
         }
     }
     
@@ -38,12 +68,12 @@ class BasicAMQPWorker extends Worker {
         }
         
         //check if the class name which is called here has implemented its own prefetch size
-        if(defined($handlerClassName::PREFETCH_SIZE)){
+        if(defined($handlerClassName."::PREFETCH_SIZE")){
            $prefetchSize = $handlerClassName::PREFETCH_SIZE;
         }
         
         //check if the class name which is called here has implemented its own prefetch count
-        if(defined($handlerClassName::PREFETCH_COUNT)){
+        if(defined($handlerClassName."::PREFETCH_COUNT")){
             $prefetchCount = $handlerClassName::PREFETCH_COUNT;
         }
         
