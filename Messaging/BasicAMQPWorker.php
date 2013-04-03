@@ -33,11 +33,10 @@ class BasicAMQPWorker extends Worker {
     const DEFAULT_LIFETIME = 10;
     
     /**
-    * The lifetime is implemented to not interfere with time outs like mysql_time etc
-    * so we do not want to cross it. By setting a reserve time (in seconds) will make sure a job
-    * doesn't go over the limit while executing a message. When the time left is within the reserve time, we restart the worker as well.
+    * The idle time is implemented to not interfere with time outs like mysql_time etc
+    * So we wait for a certain amount of time. When the idle left is reached we restart the worker.
     */
-    const DEFAULT_RESERVE_TIME = 5;
+    const DEFAULT_IDLE_TIME = 30;
     
     const MESSAGE_RESTARTING = "This Worker is restarting since it has reached its end of life. It will be back up shortly";
     
@@ -45,9 +44,9 @@ class BasicAMQPWorker extends Worker {
      * Blocking call that fires the Task every time a message comes in.
      * 
      * @param $lifespan; If empty the default lifespan is used. When the lifespan is reached the connection is reset.
-     * @param $reserveTime; If empty the default reserve time is used. When the reserve time is reached the connection is reset.
+     * @param $idleTime; If empty the default idle time is used. When the idle time is reached the connection is reset.
      */
-    public function start($lifespan = null, $reserveTime = null) {
+    public function start($lifespan = null, $idleTime = null) {
 
         //this worker will only work for a certain amount of time, so we need to create and endtime;
         $stopTime = time() + self::DEFAULT_LIFETIME;
@@ -57,9 +56,9 @@ class BasicAMQPWorker extends Worker {
             $lifespan = self::DEFAULT_LIFESPAN;
         }
         
-        //set the default reserve time if no reserve time was set.
-        if($reserveTime == null){
-            $reserveTime = self::DEFAULT_RESERVE_TIME;
+        //set the default idle time if no idle time was set.
+        if($idleTime == null){
+            $idleTime = self::DEFAULT_IDLE_TIME;
         }
         
         //set the amount of processed messages go 0.
@@ -70,10 +69,11 @@ class BasicAMQPWorker extends Worker {
             
             $timeLeft = $stopTime - time();
             //check if the lifespan has been reached
-            if($lifespan >= $messagesProcessed && $timeLeft > $reserveTime){
+            if($lifespan >= $messagesProcessed){
                 //if not we wait for another message
                 try{
-                    $this->channel->wait(null, false, $timeLeft-$reserveTime);
+                    //but only for as long as we allow it to be idle...
+                    $this->channel->wait(null, false, $idleTime);
                 } catch(AMQPTimeoutException $e){
                     echo self::MESSAGE_RESTARTING;
                     exit;
