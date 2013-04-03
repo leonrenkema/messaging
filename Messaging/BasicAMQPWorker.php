@@ -12,16 +12,32 @@ class BasicAMQPWorker extends Worker {
     
     private $channel;
     
-    //The default prefetch size for workers that have not implemented their own
+    /**
+    * The default prefetch size for workers that have not implemented their own
+    */
     const DEFAULT_PREFETCH_SIZE = 0;
     
-    //The default prefetch size for workers that have not implemented their own
+    /**
+     * The default prefetch size for workers that have not implemented their own
+    */
     const DEFAULT_PREFETCH_COUNT = 0;
     
-    //The default lifespan for workers that have not implemented their own
-    //The lifespan is set in message count, so this is the amount of messages the worker will process before restarting itself
-    //restarting itself frees up memory and resources;
-    const DEFAULT_LIFESPAN = 100;
+    /**
+    * The default lifespan for workers that have not implemented their own
+    * The lifespan is set in message count, so this is the amount of messages the worker will process before restarting itself
+    * restarting itself frees up memory and resources
+    */
+    const DEFAULT_LIFESPAN = 250;
+    
+    //lifetime in seconds before the job reinitializes itself
+    const DEFAULT_LIFETIME = 10;
+    
+    /**
+    * The lifetime is implemented to not interfere with time outs like mysql_time etc
+    * so we do not want to cross it. By setting a reserve time (in seconds) will make sure a job
+    * doesn't go over the limit while executing a message. When the time left is within the reserve time, we restart the worker as well.
+    */
+    const DEFAULT_RESERVE_TIME = 5;
     
     const MESSAGE_RESTARTING = "This Worker is restarting since it has reached its end of life. It will be back up shortly";
     
@@ -29,12 +45,21 @@ class BasicAMQPWorker extends Worker {
      * Blocking call that fires the Task every time a message comes in.
      * 
      * @param $lifespan; If empty the default lifespan is used. When the lifespan is reached the connection is reset.
+     * @param $reserveTime; If empty the default reserve time is used. When the reserve time is reached the connection is reset.
      */
-    public function start($lifespan = null) {
+    public function start($lifespan = null, $reserveTime = null) {
 
+        //this worker will only work for a certain amount of time, so we need to create and endtime;
+        $stopTime = time() + self::DEFAULT_LIFETIME;
+        
         //set the default lifespan if no lifespan has been given
         if($lifespan == null){
             $lifespan = self::DEFAULT_LIFESPAN;
+        }
+        
+        //set the default reserve time if no reserve time was set.
+        if($reserveTime == null){
+            $reserveTime = self::DEFAULT_RESERVE_TIME;
         }
         
         //set the amount of processed messages go 0.
@@ -43,10 +68,16 @@ class BasicAMQPWorker extends Worker {
             //set the message +1 (its the first, 2nd, 3rd, etc message)
             $messagesProcessed+=1;
             
+            $timeLeft = $stopTime - time();
             //check if the lifespan has been reached
-            if($lifespan >= $messagesProcessed){
+            if($lifespan >= $messagesProcessed && $timeLeft > $reserveTime){
                 //if not we wait for another message
-                $this->channel->wait();
+                try{
+                    $this->channel->wait(null, false, $timeLeft-$reserveTime);
+                } catch(AMQPTimeoutException $e){
+                    echo self::MESSAGE_RESTARTING;
+                    exit;
+                }
             } else {
                 //once it has we close the connection.
                 $this->channel->close(0, self::MESSAGE_RESTARTING);
