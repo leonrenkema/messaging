@@ -28,10 +28,7 @@ class BasicAMQPWorker extends Worker {
     * restarting itself frees up memory and resources
     */
     const DEFAULT_LIFESPAN = 250;
-    
-    //lifetime in seconds before the job reinitializes itself
-    const DEFAULT_LIFETIME = 10;
-    
+
     /**
     * The idle time is implemented to not interfere with time outs like mysql_time etc
     * So we wait for a certain amount of time. When the idle left is reached we restart the worker.
@@ -48,9 +45,6 @@ class BasicAMQPWorker extends Worker {
      */
     public function start($lifespan = null, $idleTime = null) {
 
-        //this worker will only work for a certain amount of time, so we need to create and endtime;
-        $stopTime = time() + self::DEFAULT_LIFETIME;
-        
         //set the default lifespan if no lifespan has been given
         if($lifespan == null){
             $lifespan = self::DEFAULT_LIFESPAN;
@@ -67,7 +61,6 @@ class BasicAMQPWorker extends Worker {
             //set the message +1 (its the first, 2nd, 3rd, etc message)
             $messagesProcessed+=1;
             
-            $timeLeft = $stopTime - time();
             //check if the lifespan has been reached
             if($lifespan >= $messagesProcessed){
                 //if not we wait for another message
