@@ -33,7 +33,7 @@ class BasicAMQPWorker extends Worker {
     * The idle time is implemented to not interfere with time outs like mysql_time etc
     * So we wait for a certain amount of time. When the idle left is reached we restart the worker.
     */
-    const DEFAULT_IDLE_TIME = 30;
+    const DEFAULT_IDLE_TIME = 300;
     
     const MESSAGE_RESTARTING = "This Worker is restarting since it has reached its end of life. It will be back up shortly";
     
