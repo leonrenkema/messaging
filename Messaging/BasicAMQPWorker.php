@@ -12,16 +12,28 @@ class BasicAMQPWorker extends Worker {
     
     private $channel;
     
-    //The default prefetch size for workers that have not implemented their own
+    /**
+    * The default prefetch size for workers that have not implemented their own
+    */
     const DEFAULT_PREFETCH_SIZE = 0;
     
-    //The default prefetch size for workers that have not implemented their own
+    /**
+     * The default prefetch size for workers that have not implemented their own
+    */
     const DEFAULT_PREFETCH_COUNT = 0;
     
-    //The default lifespan for workers that have not implemented their own
-    //The lifespan is set in message count, so this is the amount of messages the worker will process before restarting itself
-    //restarting itself frees up memory and resources;
-    const DEFAULT_LIFESPAN = 100;
+    /**
+    * The default lifespan for workers that have not implemented their own
+    * The lifespan is set in message count, so this is the amount of messages the worker will process before restarting itself
+    * restarting itself frees up memory and resources
+    */
+    const DEFAULT_LIFESPAN = 250;
+
+    /**
+    * The idle time is implemented to not interfere with time outs like mysql_time etc
+    * So we wait for a certain amount of time. When the idle left is reached we restart the worker.
+    */
+    const DEFAULT_IDLE_TIME = 300;
     
     const MESSAGE_RESTARTING = "This Worker is restarting since it has reached its end of life. It will be back up shortly";
     
@@ -29,12 +41,18 @@ class BasicAMQPWorker extends Worker {
      * Blocking call that fires the Task every time a message comes in.
      * 
      * @param $lifespan; If empty the default lifespan is used. When the lifespan is reached the connection is reset.
+     * @param $idleTime; If empty the default idle time is used. When the idle time is reached the connection is reset.
      */
-    public function start($lifespan = null) {
+    public function start($lifespan = null, $idleTime = null) {
 
         //set the default lifespan if no lifespan has been given
         if($lifespan == null){
             $lifespan = self::DEFAULT_LIFESPAN;
+        }
+        
+        //set the default idle time if no idle time was set.
+        if($idleTime == null){
+            $idleTime = self::DEFAULT_IDLE_TIME;
         }
         
         //set the amount of processed messages go 0.
@@ -46,7 +64,13 @@ class BasicAMQPWorker extends Worker {
             //check if the lifespan has been reached
             if($lifespan >= $messagesProcessed){
                 //if not we wait for another message
-                $this->channel->wait();
+                try{
+                    //but only for as long as we allow it to be idle...
+                    $this->channel->wait(null, false, $idleTime);
+                } catch(AMQPTimeoutException $e){
+                    echo self::MESSAGE_RESTARTING;
+                    exit;
+                }
             } else {
                 //once it has we close the connection.
                 $this->channel->close(0, self::MESSAGE_RESTARTING);
