@@ -11,10 +11,10 @@ class ThumbShotTask implements Executable {
     }
 }
 
-$config['host'] = 'test.seoeffect.com';
+$config['host'] = '';
 $config['port'] = 5672;
-$config['user'] = 'guest';
-$config['password'] = 'guest';
+$config['user'] = '';
+$config['password'] = '';
 
 $t = WorkerFactory::create($config);
 $t->registerChannel('seo.thumbshots.log', 'ThumbShotTask');
