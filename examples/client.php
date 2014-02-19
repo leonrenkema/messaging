@@ -5,13 +5,13 @@ require_once '../vendor/autoload.php';
 
 
 
-$config['host'] = 'test.seoeffect.com';
+$config['host'] = '';
 $config['port'] = 5672;
-$config['user'] = 'guest';
-$config['password'] = 'guest';
+$config['user'] = '';
+$config['password'] = '';
 
 $client = ClientFactory::create($config);
 
-$body = array('campaignId' => 31412, 'url' => 'http://tweakers.net');
+$body = array();
 
-$client->publish('seo.thumbshots.create', $body);
+$client->publish('exchange', $body);
