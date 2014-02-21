@@ -10,6 +10,9 @@ namespace Messaging;
  */
 interface Executable {
     
+    /**
+     * @return void
+     */
     public function execute($body);
      
 }
