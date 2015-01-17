@@ -1,6 +1,7 @@
 {
     "name": "syntux/messaging",
     "type": "library",
+    "license": "GPL-3.0+",
     "autoload": {
         "psr-0": {"Messaging": ""}
     },
