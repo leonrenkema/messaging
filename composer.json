@@ -5,8 +5,8 @@
         "psr-0": {"Messaging": ""}
     },
     "require": {
-        "symfony/event-dispatcher": "dev-master",
+        "symfony/event-dispatcher": ">=2.6.3",
         "php": ">=5.3.0",
-        "videlalvaro/php-amqplib": "dev-master"
+        "videlalvaro/php-amqplib": ">=2.4.1"
     }
 }

@@ -64,7 +64,7 @@ class BasicAMQPWorker extends Worker {
             //check if the lifespan has been reached
             if($lifespan >= $messagesProcessed){
                 //if not we wait for another message
-                try{
+                try {
                     //but only for as long as we allow it to be idle...
                     $this->channel->wait(null, false, $idleTime);
                 } catch(AMQPTimeoutException $e){
@@ -72,7 +72,7 @@ class BasicAMQPWorker extends Worker {
                     exit;
                 }
             } else {
-                //once it has we close the connection.
+                // once it has we close the connection.
                 $this->channel->close(0, self::MESSAGE_RESTARTING);
                 echo self::MESSAGE_RESTARTING;
                 //exit the php process so we can release the resources
@@ -80,7 +80,13 @@ class BasicAMQPWorker extends Worker {
             }
         }
     }
-    
+
+    /**
+     * Register a callback function for a channel
+     *
+     * @param $name
+     * @param $handlerClassName
+     */
     public function registerChannel($name, $handlerClassName) {
         
         //set the default prefetch args
